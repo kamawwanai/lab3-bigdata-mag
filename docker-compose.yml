@@ -1,0 +1,39 @@
+services:
+  mlflow:
+    build:
+      context: .
+      dockerfile: Dockerfile.mlflow
+    container_name: flight_mlflow
+    ports:
+      - "5000:5000"
+    volumes:
+      - ./mlruns:/mlruns
+      - ./logs:/logs
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:5000/health').read()"]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: flight_app
+    depends_on:
+      mlflow:
+        condition: service_healthy
+    environment:
+      - MLFLOW_TRACKING_URI=http://mlflow:5000
+      - ML_MAX_ROWS=300000
+      - POLARS_MAX_THREADS=2
+    volumes:
+      - ./data:/app/data:ro
+      - lakehouse_data:/app/lakehouse
+      - ./logs:/app/logs
+    command: >
+      sh -c "python -m src.pipeline.run_all --mlflow-uri http://mlflow:5000 --max-year 2018"
+
+volumes:
+  lakehouse_data:
+
