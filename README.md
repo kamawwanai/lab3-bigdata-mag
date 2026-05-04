@@ -155,3 +155,7 @@ AGGREGATE
         SELECTION: [([(col("year")) == (2019)]) & ([(col("arr_delay")) > (15)])]
 ```
 
+![1](images/ph1.png)
+![2](images/ph2.png)
+![3](images/ph3.png)
+![4](images/ph4.png)
